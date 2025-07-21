@@ -45,9 +45,10 @@ export const GenerationPopup: React.FC<GenerationPopupProps> = ({
     if (!generatedImage) return;
 
     try {
-      const response = await fetch(generatedImage);
-      const blob = await response.blob();
+      const response = await fetch(generatedImage, { mode: 'cors' });
+      if (!response.ok) throw new Error('Fetch failed');
       
+      const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
       
       const link = document.createElement('a');
@@ -59,49 +60,44 @@ export const GenerationPopup: React.FC<GenerationPopupProps> = ({
       link.click();
       document.body.removeChild(link);
       
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (error) {
-      console.log('Fetch method failed, trying canvas method...');
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
       
+    } catch (error) {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
       img.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        canvas.toBlob((blob) => {
+          const blobUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = `generated-artwork-${Date.now()}.png`;
+          link.style.display = 'none';
           
-          canvas.width = img.naturalWidth || img.width;
-          canvas.height = img.naturalHeight || img.height;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
           
-          ctx.drawImage(img, 0, 0);
-          
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const blobUrl = window.URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = blobUrl;
-              link.download = `generated-artwork-${Date.now()}.png`;
-              link.style.display = 'none';
-              
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              
-              window.URL.revokeObjectURL(blobUrl);
-            }
-          }, 'image/png');
-        } catch (canvasError) {
-          console.error('Canvas method also failed:', canvasError);
-          window.open(generatedImage, '_blank');
-          alert('Download failed. The image has opened in a new tab. Please right-click and select "Save image as..." to download.');
-        }
+          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+        }, 'image/png');
       };
       
       img.onerror = () => {
-        console.error('Image loading failed');
-        window.open(generatedImage, '_blank');
-        alert('Download failed. The image has opened in a new tab. Please right-click and select "Save image as..." to download.');
+        const link = document.createElement('a');
+        link.href = generatedImage;
+        link.download = `generated-artwork-${Date.now()}.png`;
+        link.target = '_blank';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       };
       
       img.src = generatedImage;
