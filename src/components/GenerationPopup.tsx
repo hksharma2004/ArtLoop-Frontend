@@ -41,14 +41,70 @@ export const GenerationPopup: React.FC<GenerationPopupProps> = ({
   isOpen, onClose, prompt, setPrompt, selectedStyle, setSelectedStyle, stylePresets,
   generateImage, isGenerating, credits, generatedImage
 }) => {
-  const handleDownload = () => {
-    if (generatedImage) {
+  const handleDownload = async () => {
+    if (!generatedImage) return;
+
+    try {
+      const response = await fetch(generatedImage);
+      const blob = await response.blob();
+      
+      const blobUrl = window.URL.createObjectURL(blob);
+      
       const link = document.createElement('a');
-      link.href = generatedImage;
+      link.href = blobUrl;
       link.download = `generated-artwork-${Date.now()}.png`;
+      link.style.display = 'none';
+      
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.log('Fetch method failed, trying canvas method...');
+      
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          
+          ctx.drawImage(img, 0, 0);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const blobUrl = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = blobUrl;
+              link.download = `generated-artwork-${Date.now()}.png`;
+              link.style.display = 'none';
+              
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              
+              window.URL.revokeObjectURL(blobUrl);
+            }
+          }, 'image/png');
+        } catch (canvasError) {
+          console.error('Canvas method also failed:', canvasError);
+          window.open(generatedImage, '_blank');
+          alert('Download failed. The image has opened in a new tab. Please right-click and select "Save image as..." to download.');
+        }
+      };
+      
+      img.onerror = () => {
+        console.error('Image loading failed');
+        window.open(generatedImage, '_blank');
+        alert('Download failed. The image has opened in a new tab. Please right-click and select "Save image as..." to download.');
+      };
+      
+      img.src = generatedImage;
     }
   };
 
