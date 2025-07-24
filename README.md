@@ -1,6 +1,6 @@
 # ArtLoop - AI-Powered Sketch-to-Art Transformation
 
-ArtLoop is a cutting-edge web application that transforms rough sketches into refined artwork using advanced AI technology. With an intuitive interface and powerful backend, ArtLoop enables creators to bring their ideas to life quickly and effortlessly.
+ArtLoop is a  web application that transforms rough sketches into refined artwork. It enables creators to bring their ideas to life quickly and effortlessly.
 
 ## Table of Contents
 - [Features](#features)
@@ -299,21 +299,5 @@ The application is configured for deployment on Vercel. To deploy:
 2. Connect the repository to Vercel
 3. Set environment variables in Vercel dashboard
 4. Deploy!
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a pull request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
 
 Made with ❤️ by [@hksharma2004](https://github.com/hksharma2004)
